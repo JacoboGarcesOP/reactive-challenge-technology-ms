@@ -4,13 +4,11 @@ public class CreateTechnologyResponse {
   private final Long technologyId;
   private final String name;
   private final String description;
-  private final String message;
 
-  public CreateTechnologyResponse(Long technologyId, String name, String description, String message) {
+  public CreateTechnologyResponse(Long technologyId, String name, String description) {
     this.technologyId = technologyId;
     this.name = name;
     this.description = description;
-    this.message = message;
   }
 
   public String getName() {
@@ -23,9 +21,5 @@ public class CreateTechnologyResponse {
 
   public Long getTechnologyId() {
     return technologyId;
-  }
-
-  public String getMessage() {
-    return message;
   }
 }

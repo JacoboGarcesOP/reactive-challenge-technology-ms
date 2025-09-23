@@ -4,7 +4,7 @@ import co.com.bancolombia.model.technology.exceptions.DomainException;
 
 public class Id {
 
-  private static final String NULL_ID_ERROR_MESSAGE = "Technology id cannot be null.";
+  private static final String NULL_ID_ERROR_MESSAGE = "The id cannot be null.";
 
   private final Long value;
 

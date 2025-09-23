@@ -57,7 +57,6 @@ class CreateTechnologyUseCaseTest {
                 assertThat(response.getTechnologyId()).isEqualTo(TECHNOLOGY_ID);
                 assertThat(response.getName()).isEqualTo(TECHNOLOGY_NAME);
                 assertThat(response.getDescription()).isEqualTo(TECHNOLOGY_DESCRIPTION);
-                assertThat(response.getMessage()).isEqualTo(SUCCESS_MESSAGE);
             })
             .verifyComplete();
 

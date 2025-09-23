@@ -8,7 +8,6 @@ import co.com.bancolombia.usecase.response.CreateTechnologyResponse;
 import reactor.core.publisher.Mono;
 
 public class CreateTechnologyUseCase {
-  private final String SUCCESS_MESSAGE = "Technology created successfuly.";
   private final String TECHNOLOGY_DUPLICATED_MESSAGE = "The technology name cannot be duplicated.";
   private final TechnologyGateway gateway;
 
@@ -24,7 +23,7 @@ public class CreateTechnologyUseCase {
         }
 
         return gateway.save(new Technology(command.getName(), command.getDescription()))
-          .map(technology -> new CreateTechnologyResponse(technology.getId().getValue(), technology.getName().getValue(), technology.getDescription().getValue(), SUCCESS_MESSAGE));
+          .map(technology -> new CreateTechnologyResponse(technology.getId().getValue(), technology.getName().getValue(), technology.getDescription().getValue()));
       });
   }
 }
