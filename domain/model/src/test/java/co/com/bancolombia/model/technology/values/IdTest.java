@@ -55,6 +55,6 @@ class IdTest {
             new Id(nullValue);
         });
 
-        assertEquals("Technology id cannot be null.", exception.getMessage());
+        assertEquals("The id cannot be null.", exception.getMessage());
     }
 }

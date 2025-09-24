@@ -1,11 +1,11 @@
 package co.com.bancolombia.usecase.response;
 
-public class CreateTechnologyResponse {
+public class TechnologyResponse {
   private final Long technologyId;
   private final String name;
   private final String description;
 
-  public CreateTechnologyResponse(Long technologyId, String name, String description) {
+  public TechnologyResponse(Long technologyId, String name, String description) {
     this.technologyId = technologyId;
     this.name = name;
     this.description = description;

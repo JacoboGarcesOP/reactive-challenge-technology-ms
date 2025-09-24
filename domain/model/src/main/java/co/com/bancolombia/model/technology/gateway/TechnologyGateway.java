@@ -7,8 +7,10 @@ import reactor.core.publisher.Mono;
 
 public interface TechnologyGateway {
   Mono<Boolean> existsByName(String name);
+  Mono<Technology> findByName(String name);
   Mono<Technology> save(Technology technology);
   Flux<Technology> findAll();
   Flux<Technology> findByCapacity(Long capacityId);
   Mono<TechnologyCapacity> associateTechnologyWithCapacity(TechnologyCapacity technologyCapacity);
+  Mono<TechnologyCapacity> findByTechnologyIdAndCapacityId(Long technologyId, Long capacityId);
 }
