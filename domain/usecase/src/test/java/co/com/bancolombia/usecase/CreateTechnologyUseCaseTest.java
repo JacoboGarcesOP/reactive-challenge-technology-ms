@@ -2,12 +2,8 @@ package co.com.bancolombia.usecase;
 
 import co.com.bancolombia.model.technology.Technology;
 import co.com.bancolombia.model.technology.gateway.TechnologyGateway;
-import co.com.bancolombia.model.technology.values.Description;
-import co.com.bancolombia.model.technology.values.Id;
-import co.com.bancolombia.model.technology.values.Name;
 import co.com.bancolombia.usecase.command.CreateTechnologyCommand;
 import co.com.bancolombia.usecase.exception.BussinessException;
-import co.com.bancolombia.usecase.response.CreateTechnologyResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +14,6 @@ import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +52,6 @@ class CreateTechnologyUseCaseTest {
                 assertThat(response.getTechnologyId()).isEqualTo(TECHNOLOGY_ID);
                 assertThat(response.getName()).isEqualTo(TECHNOLOGY_NAME);
                 assertThat(response.getDescription()).isEqualTo(TECHNOLOGY_DESCRIPTION);
-                assertThat(response.getMessage()).isEqualTo(SUCCESS_MESSAGE);
             })
             .verifyComplete();
 

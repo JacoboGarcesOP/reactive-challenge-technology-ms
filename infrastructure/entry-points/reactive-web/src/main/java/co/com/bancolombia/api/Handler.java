@@ -1,9 +1,14 @@
 package co.com.bancolombia.api;
 
+import co.com.bancolombia.api.request.AssociateTechnologyWithCapacityRequest;
 import co.com.bancolombia.api.request.CreateTechnologyRequest;
 import co.com.bancolombia.api.response.ErrorResponse;
 import co.com.bancolombia.model.technology.exceptions.DomainException;
+import co.com.bancolombia.usecase.AssociateTechnologyWithCapacityUseCase;
 import co.com.bancolombia.usecase.CreateTechnologyUseCase;
+import co.com.bancolombia.usecase.FindAllTechnologiesUseCase;
+import co.com.bancolombia.usecase.FindTechnologiesByCapacityUseCase;
+import co.com.bancolombia.usecase.command.AssociateTechnologyWithCapacityCommand;
 import co.com.bancolombia.usecase.command.CreateTechnologyCommand;
 import co.com.bancolombia.usecase.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +37,9 @@ public class Handler {
   private static final String GENERIC_ERROR_MESSAGE = "An unexpected error occurred";
 
   private final CreateTechnologyUseCase createTechnologyUseCase;
+  private final FindAllTechnologiesUseCase findAllTechnologiesUseCase;
+  private final FindTechnologiesByCapacityUseCase findTechnologiesByCapacityUseCase;
+  private final AssociateTechnologyWithCapacityUseCase associateTechnologyWithCapacityUseCase;
   private final Validator validator;
 
   public Mono<ServerResponse> createTechnology(ServerRequest serverRequest) {
@@ -47,6 +55,40 @@ public class Handler {
       .doOnError(error -> log.error(GENERIC_ERROR_MESSAGE, error));
   }
 
+  public Mono<ServerResponse> findAllTechnologies(ServerRequest serverRequest) {
+    return findAllTechnologiesUseCase.execute()
+      .collectList()
+      .flatMap(this::buildSuccessResponse)
+      .onErrorResume(DomainException.class, this::handleDomainException)
+      .onErrorResume(BussinessException.class, this::handleBusinessException)
+      .onErrorResume(Exception.class, this::handleGenericException)
+      .doOnError(error -> log.error(GENERIC_ERROR_MESSAGE, error));
+  }
+
+  public Mono<ServerResponse> findTechnologiesByCapacity(ServerRequest serverRequest) {
+    Long capacityId = Long.valueOf(serverRequest.pathVariable("capacityId"));
+    return findTechnologiesByCapacityUseCase.execute(capacityId)
+      .collectList()
+      .flatMap(this::buildSuccessResponse)
+      .onErrorResume(DomainException.class, this::handleDomainException)
+      .onErrorResume(BussinessException.class, this::handleBusinessException)
+      .onErrorResume(Exception.class, this::handleGenericException)
+      .doOnError(error -> log.error(GENERIC_ERROR_MESSAGE, error));
+  }
+
+  public Mono<ServerResponse> associateTechnologyWithCapacity(ServerRequest serverRequest) {
+    return serverRequest.bodyToMono(AssociateTechnologyWithCapacityRequest.class)
+      .doOnNext(this::validateAssociateRequest)
+      .map(this::mapToAssociateCommand)
+      .flatMap(associateTechnologyWithCapacityUseCase::execute)
+      .flatMap(this::buildSuccessResponse)
+      .onErrorResume(ConstraintViolationException.class, this::handleValidationException)
+      .onErrorResume(DomainException.class, this::handleDomainException)
+      .onErrorResume(BussinessException.class, this::handleBusinessException)
+      .onErrorResume(Exception.class, this::handleGenericException)
+      .doOnError(error -> log.error(GENERIC_ERROR_MESSAGE, error));
+  }
+
   private void validateRequest(CreateTechnologyRequest request) {
     Set<ConstraintViolation<CreateTechnologyRequest>> violations = validator.validate(request);
     if (!violations.isEmpty()) {
@@ -54,8 +96,19 @@ public class Handler {
     }
   }
 
+  private void validateAssociateRequest(AssociateTechnologyWithCapacityRequest request) {
+    Set<ConstraintViolation<AssociateTechnologyWithCapacityRequest>> violations = validator.validate(request);
+    if (!violations.isEmpty()) {
+      throw new ConstraintViolationException(violations);
+    }
+  }
+
   private CreateTechnologyCommand mapToCommand(CreateTechnologyRequest request) {
     return new CreateTechnologyCommand(request.getName(), request.getDescription());
+  }
+
+  private AssociateTechnologyWithCapacityCommand mapToAssociateCommand(AssociateTechnologyWithCapacityRequest request) {
+    return new AssociateTechnologyWithCapacityCommand(request.getCapacityId(), request.getTechnology());
   }
 
   private Mono<ServerResponse> buildSuccessResponse(Object response) {
