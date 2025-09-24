@@ -1,5 +1,6 @@
 package co.com.bancolombia.api;
 
+import co.com.bancolombia.api.request.AssociateTechnologyWithCapacityRequest;
 import co.com.bancolombia.api.request.CreateTechnologyRequest;
 import co.com.bancolombia.api.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.PUT;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
@@ -122,7 +125,239 @@ public class RouterRest {
       }
     )
   )
-  public RouterFunction<ServerResponse> routerFunction(Handler handler) {
+  public RouterFunction<ServerResponse> createTechnologyRouter(Handler handler) {
     return route(POST(BASE_URL + "/technology"), handler::createTechnology);
+  }
+
+  @Bean
+  @RouterOperation(
+    path = "/v1/api/technology",
+    method = RequestMethod.GET,
+    operation = @Operation(
+      operationId = "findAllTechnologies",
+      summary = "Obtener todas las tecnologías",
+      description = "Endpoint para obtener la lista completa de tecnologías disponibles en el sistema. " +
+        "No requiere parámetros de entrada y retorna todas las tecnologías registradas.",
+      tags = {"Technology Management"},
+      responses = {
+        @ApiResponse(
+          responseCode = "200",
+          description = "Lista de tecnologías obtenida exitosamente",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(
+              description = "Lista de tecnologías disponibles"
+            ),
+            examples = @ExampleObject(
+              name = "Success Response",
+              summary = "Lista de tecnologías",
+              value = "[\n" +
+                "  {\n" +
+                "    \"technologyId\": 1,\n" +
+                "    \"name\": \"Spring Boot\",\n" +
+                "    \"description\": \"Framework de Java para desarrollo de aplicaciones empresariales\"\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"technologyId\": 2,\n" +
+                "    \"name\": \"React\",\n" +
+                "    \"description\": \"Biblioteca de JavaScript para construir interfaces de usuario\"\n" +
+                "  }\n" +
+                "]"
+            )
+          )
+        ),
+        @ApiResponse(
+          responseCode = "500",
+          description = "Error interno del servidor",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(
+              name = "Internal Error",
+              summary = "Error interno del sistema",
+              value = "{\n" +
+                "  \"error\": \"INTERNAL_ERROR\",\n" +
+                "  \"message\": \"An unexpected error occurred\"\n" +
+                "}"
+            )
+          )
+        )
+      }
+    )
+  )
+  public RouterFunction<ServerResponse> findAllTechnologiesRouter(Handler handler) {
+    return route(GET(BASE_URL + "/technology"), handler::findAllTechnologies);
+  }
+
+  @Bean
+  @RouterOperation(
+    path = "/v1/api/technology/capacity/{capacityId}",
+    method = RequestMethod.GET,
+    operation = @Operation(
+      operationId = "findTechnologiesByCapacity",
+      summary = "Obtener tecnologías por capacidad",
+      description = "Endpoint para obtener las tecnologías asociadas a una capacidad específica. " +
+        "Requiere el ID de la capacidad como parámetro de ruta.",
+      tags = {"Technology Management"},
+      responses = {
+        @ApiResponse(
+          responseCode = "200",
+          description = "Lista de tecnologías por capacidad obtenida exitosamente",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(
+              description = "Lista de tecnologías asociadas a la capacidad especificada"
+            ),
+            examples = @ExampleObject(
+              name = "Success Response",
+              summary = "Tecnologías por capacidad",
+              value = "[\n" +
+                "  {\n" +
+                "    \"technologyId\": 1,\n" +
+                "    \"name\": \"Spring Boot\",\n" +
+                "    \"description\": \"Framework de Java para desarrollo de aplicaciones empresariales\"\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"technologyId\": 3,\n" +
+                "    \"name\": \"Docker\",\n" +
+                "    \"description\": \"Plataforma de contenedores para desarrollo y despliegue\"\n" +
+                "  }\n" +
+                "]"
+            )
+          )
+        ),
+        @ApiResponse(
+          responseCode = "400",
+          description = "Error de validación o negocio",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(
+              name = "Business Error",
+              summary = "Error de reglas de negocio",
+              value = "{\n" +
+                "  \"error\": \"BUSINESS_ERROR\",\n" +
+                "  \"message\": \"Capacity not found\"\n" +
+                "}"
+            )
+          )
+        ),
+        @ApiResponse(
+          responseCode = "500",
+          description = "Error interno del servidor",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(
+              name = "Internal Error",
+              summary = "Error interno del sistema",
+              value = "{\n" +
+                "  \"error\": \"INTERNAL_ERROR\",\n" +
+                "  \"message\": \"An unexpected error occurred\"\n" +
+                "}"
+            )
+          )
+        )
+      }
+    )
+  )
+  public RouterFunction<ServerResponse> findTechnologiesByCapacityRouter(Handler handler) {
+    return route(GET(BASE_URL + "/technology/capacity/{capacityId}"), handler::findTechnologiesByCapacity);
+  }
+
+  @Bean
+  @RouterOperation(
+    path = "/v1/api/technology/associate",
+    method = RequestMethod.POST,
+    operation = @Operation(
+      operationId = "associateTechnologyWithCapacity",
+      summary = "Asociar tecnología con capacidad",
+      description = "Endpoint para asociar una tecnología existente con una capacidad específica. " +
+        "Requiere el ID de la capacidad y el nombre de la tecnología en el cuerpo de la petición.",
+      tags = {"Technology Management"},
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        description = "Datos para asociar tecnología con capacidad. Requiere capacityId (positivo) y technology (máx 50 caracteres).",
+        required = true,
+        content = @Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = AssociateTechnologyWithCapacityRequest.class),
+          examples = @ExampleObject(
+            name = "Ejemplo de asociación",
+            summary = "Ejemplo de request para asociar tecnología con capacidad",
+            value = "{\n" +
+              "  \"capacityId\": 1,\n" +
+              "  \"technology\": \"Spring Boot\"\n" +
+              "}"
+          )
+        )
+      ),
+      responses = {
+        @ApiResponse(
+          responseCode = "200",
+          description = "Tecnología asociada exitosamente",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(
+              description = "Respuesta exitosa al asociar tecnología con capacidad"
+            ),
+            examples = @ExampleObject(
+              name = "Success Response",
+              summary = "Tecnología asociada correctamente",
+              value = "{\n" +
+                "  \"technologyId\": 1,\n" +
+                "  \"name\": \"Spring Boot\",\n" +
+                "  \"description\": \"Framework de Java para desarrollo de aplicaciones empresariales\",\n" +
+                "  \"capacityId\": 1\n" +
+                "}"
+            )
+          )
+        ),
+        @ApiResponse(
+          responseCode = "400",
+          description = "Error de validación, dominio o negocio",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = {
+              @ExampleObject(
+                name = "Validation Error",
+                summary = "Error de validación de campos",
+                value = "{\n" +
+                  "  \"error\": \"VALIDATION_ERROR\",\n" +
+                  "  \"message\": \"Capacity id is required, Technology name cannot be empty\"\n" +
+                  "}"
+              ),
+              @ExampleObject(
+                name = "Business Error",
+                summary = "Error de reglas de negocio",
+                value = "{\n" +
+                  "  \"error\": \"BUSINESS_ERROR\",\n" +
+                  "  \"message\": \"The technology name has not been found.\"\n" +
+                  "}"
+              )
+            }
+          )
+        ),
+        @ApiResponse(
+          responseCode = "500",
+          description = "Error interno del servidor",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(
+              name = "Internal Error",
+              summary = "Error interno del sistema",
+              value = "{\n" +
+                "  \"error\": \"INTERNAL_ERROR\",\n" +
+                "  \"message\": \"An unexpected error occurred\"\n" +
+                "}"
+            )
+          )
+        )
+      }
+    )
+  )
+  public RouterFunction<ServerResponse> associateTechnologyWithCapacityRouter(Handler handler) {
+    return route(POST(BASE_URL + "/technology/associate"), handler::associateTechnologyWithCapacity);
   }
 }

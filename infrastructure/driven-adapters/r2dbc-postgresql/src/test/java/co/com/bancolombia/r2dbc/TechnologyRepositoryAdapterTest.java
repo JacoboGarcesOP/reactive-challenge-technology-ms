@@ -20,6 +20,9 @@ class TechnologyRepositoryAdapterTest {
   @Mock
   private TechnologyRepository repository;
 
+  @Mock
+  private TechnologyCapacityRepository capacityRepository;
+
   private TechnologyRepositoryAdapter adapter;
 
   private Technology technology;
@@ -31,7 +34,7 @@ class TechnologyRepositoryAdapterTest {
 
   @BeforeEach
   void setUp() {
-    adapter = new TechnologyRepositoryAdapter(repository);
+    adapter = new TechnologyRepositoryAdapter(repository, capacityRepository);
 
     technology = new Technology(TECHNOLOGY_ID, TECHNOLOGY_NAME, TECHNOLOGY_DESCRIPTION);
 
@@ -46,7 +49,7 @@ class TechnologyRepositoryAdapterTest {
   @Test
   void shouldCreateAdapterWithRepository() {
     // When
-    TechnologyRepositoryAdapter newAdapter = new TechnologyRepositoryAdapter(repository);
+    TechnologyRepositoryAdapter newAdapter = new TechnologyRepositoryAdapter(repository, capacityRepository);
 
     // Then
     assertNotNull(newAdapter);
@@ -269,8 +272,8 @@ class TechnologyRepositoryAdapterTest {
   @Test
   void shouldWorkWithLongTechnologyNames() {
     // Given
-    String longName = "a".repeat(89); // Near maximum length
-    String longDescription = "b".repeat(89);
+    String longName = "a".repeat(50); // Maximum length allowed
+    String longDescription = "b".repeat(90); // Maximum length allowed
 
     Technology longTechnology = new Technology(1L, longName, longDescription);
     TechnologyEntity longEntity = TechnologyEntity.builder()
