@@ -8,6 +8,7 @@ import co.com.bancolombia.usecase.AssociateTechnologyWithCapacityUseCase;
 import co.com.bancolombia.usecase.CreateTechnologyUseCase;
 import co.com.bancolombia.usecase.FindAllTechnologiesUseCase;
 import co.com.bancolombia.usecase.FindTechnologiesByCapacityUseCase;
+import co.com.bancolombia.usecase.DeleteTechnologyUseCase;
 import co.com.bancolombia.usecase.command.AssociateTechnologyWithCapacityCommand;
 import co.com.bancolombia.usecase.command.CreateTechnologyCommand;
 import co.com.bancolombia.usecase.exception.BussinessException;
@@ -40,6 +41,7 @@ public class Handler {
   private final FindAllTechnologiesUseCase findAllTechnologiesUseCase;
   private final FindTechnologiesByCapacityUseCase findTechnologiesByCapacityUseCase;
   private final AssociateTechnologyWithCapacityUseCase associateTechnologyWithCapacityUseCase;
+  private final DeleteTechnologyUseCase deleteTechnologyUseCase;
   private final Validator validator;
 
   public Mono<ServerResponse> createTechnology(ServerRequest serverRequest) {
@@ -89,6 +91,16 @@ public class Handler {
       .doOnError(error -> log.error(GENERIC_ERROR_MESSAGE, error));
   }
 
+  public Mono<ServerResponse> deleteTechnologies(ServerRequest serverRequest) {
+    Long capacityId = Long.valueOf(serverRequest.pathVariable("capacityId"));
+    return deleteTechnologyUseCase.execute(capacityId)
+      .flatMap(this::buildSuccessResponse)
+      .onErrorResume(DomainException.class, this::handleDomainException)
+      .onErrorResume(BussinessException.class, this::handleBusinessException)
+      .onErrorResume(Exception.class, this::handleGenericException)
+      .doOnError(error -> log.error(GENERIC_ERROR_MESSAGE, error));
+  }
+
   private void validateRequest(CreateTechnologyRequest request) {
     Set<ConstraintViolation<CreateTechnologyRequest>> violations = validator.validate(request);
     if (!violations.isEmpty()) {
@@ -102,6 +114,7 @@ public class Handler {
       throw new ConstraintViolationException(violations);
     }
   }
+
 
   private CreateTechnologyCommand mapToCommand(CreateTechnologyRequest request) {
     return new CreateTechnologyCommand(request.getName(), request.getDescription());
