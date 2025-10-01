@@ -2,13 +2,17 @@ package co.com.bancolombia.r2dbc;
 
 import co.com.bancolombia.model.technology.Technology;
 import co.com.bancolombia.r2dbc.entity.TechnologyEntity;
+import co.com.bancolombia.r2dbc.entity.TechnologyCapacityEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -264,7 +268,8 @@ class TechnologyRepositoryAdapterTest {
 
     // Then
     StepVerifier.create(result)
-      .verifyComplete();
+      .expectComplete()
+      .verify();
 
     verify(repository, times(1)).save(any(TechnologyEntity.class));
   }
@@ -294,5 +299,154 @@ class TechnologyRepositoryAdapterTest {
         assertEquals(longDescription, savedTechnology.getDescription().getValue());
       })
       .verifyComplete();
+  }
+
+  @Test
+  void shouldDeleteTechnologySuccessfully() {
+    // Given
+    Long technologyId = 1L;
+    when(capacityRepository.findAllByTechnologyId(technologyId)).thenReturn(Flux.empty());
+    when(repository.deleteById(technologyId)).thenReturn(Mono.empty());
+
+    // When
+    Mono<Boolean> result = adapter.delete(technologyId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectNext(true)
+      .verifyComplete();
+
+    verify(capacityRepository, times(1)).findAllByTechnologyId(technologyId);
+    verify(repository, times(1)).deleteById(technologyId);
+  }
+
+  @Test
+  void shouldDeleteTechnologyWithSingleCapacity() {
+    // Given
+    Long technologyId = 1L;
+    Long capacityId = 2L;
+    
+    TechnologyCapacityEntity capacityEntity = TechnologyCapacityEntity.builder()
+      .id(1L)
+      .technologyId(technologyId)
+      .capacityId(capacityId)
+      .build();
+
+    when(capacityRepository.findAllByTechnologyId(technologyId))
+      .thenReturn(Flux.just(capacityEntity));
+    when(capacityRepository.delete(any(TechnologyCapacityEntity.class)))
+      .thenReturn(Mono.empty());
+    when(repository.deleteById(technologyId)).thenReturn(Mono.empty());
+
+    // When
+    Mono<Boolean> result = adapter.delete(technologyId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectNext(true)
+      .verifyComplete();
+
+    verify(capacityRepository, times(1)).findAllByTechnologyId(technologyId);
+    verify(capacityRepository, times(1)).delete(any(TechnologyCapacityEntity.class));
+    verify(repository, times(1)).deleteById(technologyId);
+  }
+
+  @Test
+  void shouldHandleErrorWhenDeletingTechnology() {
+    // Given
+    Long technologyId = 1L;
+    RuntimeException repositoryException = new RuntimeException("Database error");
+    when(capacityRepository.findAllByTechnologyId(technologyId)).thenReturn(Flux.empty());
+    when(repository.deleteById(technologyId)).thenReturn(Mono.error(repositoryException));
+
+    // When
+    Mono<Boolean> result = adapter.delete(technologyId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectError(RuntimeException.class)
+      .verify();
+
+    verify(capacityRepository, times(1)).findAllByTechnologyId(technologyId);
+    verify(repository, times(1)).deleteById(technologyId);
+  }
+
+
+
+  @Test
+  void shouldCountCapacitiesByTechnologyId() {
+    // Given
+    Long technologyId = 1L;
+    Long expectedCount = 3L;
+    when(capacityRepository.countByTechnologyId(technologyId))
+      .thenReturn(Mono.just(expectedCount));
+
+    // When
+    Mono<Long> result = adapter.countCapacitiesByTechnologyId(technologyId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectNext(expectedCount)
+      .verifyComplete();
+
+    verify(capacityRepository).countByTechnologyId(technologyId);
+  }
+
+  @Test
+  void shouldDeleteTechnologyCapacityRelation() {
+    // Given
+    Long technologyId = 1L;
+    Long capacityId = 2L;
+    when(capacityRepository.deleteByTechnologyIdAndCapacityId(technologyId, capacityId))
+      .thenReturn(Mono.empty());
+
+    // When
+    Mono<Boolean> result = adapter.deleteTechnologyCapacityRelation(technologyId, capacityId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectNext(true)
+      .verifyComplete();
+
+    verify(capacityRepository).deleteByTechnologyIdAndCapacityId(technologyId, capacityId);
+  }
+
+  @Test
+  void shouldPropagateError_whenCountCapacitiesByTechnologyIdFails() {
+    // Given
+    Long technologyId = 1L;
+    RuntimeException error = new RuntimeException("Database error");
+    when(capacityRepository.countByTechnologyId(technologyId))
+      .thenReturn(Mono.error(error));
+
+    // When
+    Mono<Long> result = adapter.countCapacitiesByTechnologyId(technologyId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectError(RuntimeException.class)
+      .verify();
+
+    verify(capacityRepository).countByTechnologyId(technologyId);
+  }
+
+  @Test
+  void shouldPropagateError_whenDeleteTechnologyCapacityRelationFails() {
+    // Given
+    Long technologyId = 1L;
+    Long capacityId = 2L;
+    RuntimeException error = new RuntimeException("Delete error");
+    when(capacityRepository.deleteByTechnologyIdAndCapacityId(technologyId, capacityId))
+      .thenReturn(Mono.error(error));
+
+    // When
+    Mono<Boolean> result = adapter.deleteTechnologyCapacityRelation(technologyId, capacityId);
+
+    // Then
+    StepVerifier.create(result)
+      .expectError(RuntimeException.class)
+      .verify();
+
+    verify(capacityRepository).deleteByTechnologyIdAndCapacityId(technologyId, capacityId);
   }
 }

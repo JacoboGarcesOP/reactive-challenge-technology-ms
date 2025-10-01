@@ -8,7 +8,8 @@ import reactor.core.publisher.Mono;
 
 public interface TechnologyRepository extends ReactiveCrudRepository<TechnologyEntity, Long> {
   Mono<Boolean> existsByName(String name);
-  
+  Mono<Boolean> existsByTechnologyId(Long technologyId);
+
   Mono<TechnologyEntity> findByName(String name);
   
   @Query("SELECT t.* FROM tech_schema.technology t " +

@@ -6,8 +6,11 @@ import co.com.bancolombia.model.technology.gateway.TechnologyGateway;
 import co.com.bancolombia.r2dbc.entity.TechnologyCapacityEntity;
 import co.com.bancolombia.r2dbc.entity.TechnologyEntity;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Repository
 public class TechnologyRepositoryAdapter implements TechnologyGateway {
@@ -34,6 +37,7 @@ public class TechnologyRepositoryAdapter implements TechnologyGateway {
   public Mono<Boolean> existsByName(String name) {
     return repository.existsByName(name);
   }
+
 
   @Override
   public Mono<Technology> findByName(String name) {
@@ -78,4 +82,27 @@ public class TechnologyRepositoryAdapter implements TechnologyGateway {
         entity.getCapacityId()
       ));
   }
+
+  @Override
+  @Transactional
+  public Mono<Boolean> delete(Long technologyId) {
+    return capacityRepository.findAllByTechnologyId(technologyId)
+      .flatMap(capacityRepository::delete)
+      .then(repository.deleteById(technologyId))
+      .thenReturn(Boolean.TRUE);
+  }
+
+
+  @Override
+  public Mono<Long> countCapacitiesByTechnologyId(Long technologyId) {
+    return capacityRepository.countByTechnologyId(technologyId);
+  }
+
+  @Override
+  @Transactional
+  public Mono<Boolean> deleteTechnologyCapacityRelation(Long technologyId, Long capacityId) {
+    return capacityRepository.deleteByTechnologyIdAndCapacityId(technologyId, capacityId)
+      .thenReturn(Boolean.TRUE);
+  }
+
 }
