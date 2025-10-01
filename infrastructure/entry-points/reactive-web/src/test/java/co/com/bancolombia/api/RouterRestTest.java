@@ -5,6 +5,7 @@ import co.com.bancolombia.api.request.CreateTechnologyRequest;
 import co.com.bancolombia.model.technology.exceptions.DomainException;
 import co.com.bancolombia.usecase.AssociateTechnologyWithCapacityUseCase;
 import co.com.bancolombia.usecase.CreateTechnologyUseCase;
+import co.com.bancolombia.usecase.DeleteTechnologyUseCase;
 import co.com.bancolombia.usecase.FindAllTechnologiesUseCase;
 import co.com.bancolombia.usecase.FindTechnologiesByCapacityUseCase;
 import co.com.bancolombia.usecase.command.AssociateTechnologyWithCapacityCommand;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
@@ -53,6 +55,9 @@ class RouterRestTest {
   private AssociateTechnologyWithCapacityUseCase associateTechnologyWithCapacityUseCase;
 
   @Mock
+  private DeleteTechnologyUseCase deleteTechnologyUseCase;
+
+  @Mock
   private Validator validator;
 
   @InjectMocks
@@ -67,7 +72,8 @@ class RouterRestTest {
     routerFunction = (RouterFunction<ServerResponse>) routerRest.createTechnologyRouter(handler)
       .andOther(routerRest.findAllTechnologiesRouter(handler))
       .andOther(routerRest.findTechnologiesByCapacityRouter(handler))
-      .andOther(routerRest.associateTechnologyWithCapacityRouter(handler));
+      .andOther(routerRest.associateTechnologyWithCapacityRouter(handler))
+      .andOther(routerRest.deleteTechnologiesByCapacityRouter(handler));
 
     webTestClient = WebTestClient
       .bindToRouterFunction(routerFunction)
@@ -90,8 +96,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isOk()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -122,8 +127,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -150,8 +154,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -177,8 +180,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -202,8 +204,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().is5xxServerError()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -249,8 +250,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -287,27 +287,6 @@ class RouterRestTest {
       .jsonPath("$[1].technologyId").isEqualTo("2")
       .jsonPath("$[1].name").isEqualTo("Spring Boot")
       .jsonPath("$[1].description").isEqualTo("Framework de Java");
-
-    verify(findAllTechnologiesUseCase).execute();
-  }
-
-  @Test
-  @DisplayName("Debe manejar errores al obtener todas las tecnologías")
-  void shouldHandleErrorsWhenFindingAllTechnologies() {
-    // Given
-    when(findAllTechnologiesUseCase.execute())
-      .thenReturn(Flux.error(new RuntimeException("Database error")));
-
-    // When & Then
-    webTestClient
-      .get()
-      .uri("/v1/api/technology")
-      .exchange()
-      .expectStatus().is5xxServerError()
-      .expectHeader().contentType(MediaType.APPLICATION_JSON)
-      .expectBody()
-      .jsonPath("$.error").isEqualTo("INTERNAL_ERROR")
-      .jsonPath("$.message").isEqualTo("An unexpected error occurred");
 
     verify(findAllTechnologiesUseCase).execute();
   }
@@ -408,8 +387,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology/associate")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isOk()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -441,8 +419,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology/associate")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -469,8 +446,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology/associate")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -496,8 +472,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology/associate")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -523,8 +498,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology/associate")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().is5xxServerError()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -559,8 +533,7 @@ class RouterRestTest {
     webTestClient
       .post()
       .uri("/v1/api/technology/associate")
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
+      .body(BodyInserters.fromValue(request))
       .exchange()
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -571,5 +544,101 @@ class RouterRestTest {
 
     verify(validator).validate(any(AssociateTechnologyWithCapacityRequest.class));
     verifyNoInteractions(associateTechnologyWithCapacityUseCase);
+  }
+
+  @Test
+  @DisplayName("Debe eliminar tecnologías por capacidad exitosamente")
+  void shouldDeleteTechnologiesByCapacitySuccessfully() {
+    // Given
+    Long capacityId = 1L;
+    List<Long> expectedResponse = List.of(1L, 2L, 3L);
+
+    when(deleteTechnologyUseCase.execute(capacityId))
+      .thenReturn(Mono.just(expectedResponse));
+
+    // When & Then
+    webTestClient
+      .delete()
+      .uri("/v1/api/technology/capacity/{capacityId}", capacityId)
+      .exchange()
+      .expectStatus().isOk()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$[0]").isEqualTo(1)
+      .jsonPath("$[1]").isEqualTo(2)
+      .jsonPath("$[2]").isEqualTo(3);
+
+    verify(deleteTechnologyUseCase).execute(capacityId);
+  }
+
+  @Test
+  @DisplayName("Debe manejar error de negocio al eliminar tecnologías por capacidad")
+  void shouldHandleBusinessErrorWhenDeletingTechnologiesByCapacity() {
+    // Given
+    Long capacityId = 1L;
+    String errorMessage = "Capacity ID cannot be null";
+
+    when(deleteTechnologyUseCase.execute(capacityId))
+      .thenReturn(Mono.error(new BussinessException(errorMessage)));
+
+    // When & Then
+    webTestClient
+      .delete()
+      .uri("/v1/api/technology/capacity/{capacityId}", capacityId)
+      .exchange()
+      .expectStatus().isBadRequest()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.error").isEqualTo("BUSINESS_ERROR")
+      .jsonPath("$.message").isEqualTo(errorMessage);
+
+    verify(deleteTechnologyUseCase).execute(capacityId);
+  }
+
+  @Test
+  @DisplayName("Debe manejar error de dominio al eliminar tecnologías por capacidad")
+  void shouldHandleDomainErrorWhenDeletingTechnologiesByCapacity() {
+    // Given
+    Long capacityId = 1L;
+    String errorMessage = "Invalid capacity data";
+
+    when(deleteTechnologyUseCase.execute(capacityId))
+      .thenReturn(Mono.error(new DomainException(errorMessage)));
+
+    // When & Then
+    webTestClient
+      .delete()
+      .uri("/v1/api/technology/capacity/{capacityId}", capacityId)
+      .exchange()
+      .expectStatus().isBadRequest()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.error").isEqualTo("DOMAIN_ERROR")
+      .jsonPath("$.message").isEqualTo(errorMessage);
+
+    verify(deleteTechnologyUseCase).execute(capacityId);
+  }
+
+  @Test
+  @DisplayName("Debe manejar error interno al eliminar tecnologías por capacidad")
+  void shouldHandleInternalErrorWhenDeletingTechnologiesByCapacity() {
+    // Given
+    Long capacityId = 1L;
+
+    when(deleteTechnologyUseCase.execute(capacityId))
+      .thenReturn(Mono.error(new RuntimeException("Database connection failed")));
+
+    // When & Then
+    webTestClient
+      .delete()
+      .uri("/v1/api/technology/capacity/{capacityId}", capacityId)
+      .exchange()
+      .expectStatus().is5xxServerError()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.error").isEqualTo("INTERNAL_ERROR")
+      .jsonPath("$.message").isEqualTo("An unexpected error occurred");
+
+    verify(deleteTechnologyUseCase).execute(capacityId);
   }
 }

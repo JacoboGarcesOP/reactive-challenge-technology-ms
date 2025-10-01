@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
@@ -358,5 +359,82 @@ public class RouterRest {
   )
   public RouterFunction<ServerResponse> associateTechnologyWithCapacityRouter(Handler handler) {
     return route(POST(BASE_URL + "/technology/associate"), handler::associateTechnologyWithCapacity);
+  }
+
+
+  @Bean
+  @RouterOperation(
+    path = "/v1/api/technology/capacity/{capacityId}",
+    method = RequestMethod.DELETE,
+    operation = @Operation(
+      operationId = "deleteTechnologiesByCapacity",
+      summary = "Eliminar tecnologías por capacidad",
+      description = "Elimina todas las tecnologías asociadas a una capacidad específica. " +
+        "Si una tecnología solo está asociada a esa capacidad, se elimina completamente. " +
+        "Si está asociada a otras capacidades, solo se elimina la relación.",
+      tags = {"Technology Management"},
+      parameters = {
+        @io.swagger.v3.oas.annotations.Parameter(
+          name = "capacityId",
+          description = "ID de la capacidad para la cual eliminar las tecnologías asociadas",
+          required = true,
+          in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+          schema = @Schema(type = "integer", format = "int64"),
+          example = "1"
+        )
+      },
+      responses = {
+        @ApiResponse(
+          responseCode = "200",
+          description = "Tecnologías procesadas exitosamente",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(
+              description = "Lista de IDs de tecnologías procesadas"
+            ),
+            examples = @ExampleObject(
+              name = "Success Response",
+              summary = "Tecnologías procesadas correctamente",
+              value = "[1, 2, 3]"
+            )
+          )
+        ),
+        @ApiResponse(
+          responseCode = "400",
+          description = "Error en la solicitud",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(
+              name = "Business Error",
+              summary = "Error cuando el capacityId es nulo o no existe",
+              value = "{\n" +
+                "  \"error\": \"BUSINESS_ERROR\",\n" +
+                "  \"message\": \"Capacity ID cannot be null\"\n" +
+                "}"
+            )
+          )
+        ),
+        @ApiResponse(
+          responseCode = "500",
+          description = "Error interno del servidor",
+          content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(
+              name = "Internal Error",
+              summary = "Error interno del sistema",
+              value = "{\n" +
+                "  \"error\": \"INTERNAL_ERROR\",\n" +
+                "  \"message\": \"An unexpected error occurred\"\n" +
+                "}"
+            )
+          )
+        )
+      }
+    )
+  )
+  public RouterFunction<ServerResponse> deleteTechnologiesByCapacityRouter(Handler handler) {
+    return route(DELETE(BASE_URL + "/technology/capacity/{capacityId}"), handler::deleteTechnologies);
   }
 }
