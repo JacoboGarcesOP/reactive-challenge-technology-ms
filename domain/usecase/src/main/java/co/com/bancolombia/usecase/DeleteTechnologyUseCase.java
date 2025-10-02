@@ -1,6 +1,5 @@
 package co.com.bancolombia.usecase;
 
-import co.com.bancolombia.model.technology.Technology;
 import co.com.bancolombia.model.technology.gateway.TechnologyGateway;
 import co.com.bancolombia.usecase.exception.BussinessException;
 import reactor.core.publisher.Flux;
